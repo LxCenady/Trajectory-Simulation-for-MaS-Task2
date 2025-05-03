@@ -51,7 +51,8 @@ t_values = np.arange(0, t_max + dt, dt)
 num_frames = len(t_values)
 t_col = t_values[:, np.newaxis]
 positions = r0 + v0 * t_col + 0.5 * a * t_col**2
-
+positions_no_F = r0 + v0 * t_col
+x_traj_no_F, y_traj_no_F = positions_no_F[:, 0], positions_no_F[:, 1]
 x_traj = positions[:, 0]
 y_traj = positions[:, 1]
 
@@ -60,17 +61,20 @@ fig, ax = plt.subplots(figsize=(8, 6))
 
 
 line, = ax.plot([], [], 'b-', lw=2, label='Trajectory') # 
+line2, = ax.plot([], [], 'g--', lw=2, label='Intended Trajectory')
 point, = ax.plot([], [], 'ro', markersize=8, label=f'Object (m={m}kg)') # 
 time_template = 'Time = %.2fs'
 time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes) # 
 
 
 def init():
+    all_x = np.concatenate([x_traj, x_traj_no_F])
+    all_y = np.concatenate([y_traj, y_traj_no_F])
+    margin_x = (all_x.max() - all_x.min()) * 0.1 or 1  
+    margin_y = (all_y.max() - all_y.min()) * 0.1 or 1
     
-    margin_x = (x_traj.max() - x_traj.min()) * 0.1
-    margin_y = (y_traj.max() - y_traj.min()) * 0.1
-    ax.set_xlim(x_traj.min() - margin_x - 1, x_traj.max() + margin_x + 1)
-    ax.set_ylim(y_traj.min() - margin_y - 1, y_traj.max() + margin_y + 1)
+    ax.set_xlim(all_x.min() - margin_x, all_x.max() + margin_x)
+    ax.set_ylim(all_y.min() - margin_y, all_y.max() + margin_y)
 
     ax.set_xlabel('X Position (m)')
     ax.set_ylabel('Y Position (m)')
@@ -79,25 +83,21 @@ def init():
     ax.legend(loc='upper right')
     
     line.set_data([], [])
+    line2.set_data([], [])
     point.set_data([], [])
     time_text.set_text('')
-    return line, point, time_text
+    return line, line2, point, time_text
 
 
 def update(frame):
     
     current_t = t_values[frame]
-
-    
     line.set_data(x_traj[:frame+1], y_traj[:frame+1])
-
-    
+    line2.set_data(x_traj_no_F[:frame+1], y_traj_no_F[:frame+1])
     point.set_data([x_traj[frame]], [y_traj[frame]])
-
-    
     time_text.set_text(time_template % current_t)
 
-    return line, point, time_text
+    return line, line2, point, time_text
 
 
 ani = animation.FuncAnimation(fig, update, frames=num_frames,
