@@ -200,6 +200,6 @@ def update(frame):
     return line, line2, optimized_line, point, target_point
 
 ani = animation.FuncAnimation(fig, update, frames=closest_frame+1,
-                            init_func=init, blit=True, interval=dt*1000)
+                            init_func=init, blit=True, interval=dt*1000, repeat=False)
     
 plt.show()
